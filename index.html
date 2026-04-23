@@ -6,7 +6,84 @@
     <title id="site-title">OINK — Кино и сериалы в HD</title>
     
     <meta name="description" id="meta-desc" content="Смотрите тысячи фильмов и сериалов на OINK. Умные рекомендации и высокое качество.">
+    <!-- Telegram баннер - вставить перед закрывающим тегом body -->
+<div id="telegramBanner" style="position: fixed; bottom: 20px; right: 20px; z-index: 10001; background: linear-gradient(135deg, #1A1A1A, #0D0D0D); border: 1px solid #FF5E00; border-radius: 60px; padding: 0.6rem 1.2rem 0.6rem 1rem; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(10px);" onclick="window.open('https://t.me/oinktech', '_blank')">
+    <div style="background: #0088cc; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">📱</div>
+    <div style="font-size: 0.8rem; font-weight: 600;">
+        Подписывайтесь на <span style="color: #FF5E00;">@oinktech</span><br>
+        <span style="font-size:0.7rem; color:#888;">Новинки каждый день</span>
+    </div>
+    <button id="closeTelegramBtn" style="background: none; border: none; color: #666; cursor: pointer; font-size: 1rem; padding: 0 0 0 0.5rem;" onclick="event.stopPropagation(); closeTelegramBanner()">✕</button>
+</div>
+
+<script>
+    // Проверяем, закрывал ли пользователь баннер раньше
+    if (localStorage.getItem('oink_telegram_closed') === 'true') {
+        document.getElementById('telegramBanner').style.display = 'none';
+    }
     
+    function closeTelegramBanner() {
+        document.getElementById('telegramBanner').style.display = 'none';
+        localStorage.setItem('oink_telegram_closed', 'true');
+    }
+</script>
+    <!-- VPN баннер - полный экран, блокирует сайт -->
+<div id="vpnOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 20000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+    <div style="background: linear-gradient(135deg, #1A1A1A 0%, #0D0D0D 100%); border: 2px solid #FF5E00; border-radius: 32px; padding: 2.5rem; max-width: 500px; width: 90%; text-align: center; animation: fadeInUp 0.4s ease;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🔒</div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1rem; color: #FF5E00;">ВЫКЛЮЧИТЕ VPN</h2>
+        <p style="color: #B3B3B3; margin-bottom: 1.5rem; line-height: 1.5;">Для доступа к контенту отключите VPN или прокси. OINK работает только из России и стран СНГ.</p>
+        <button onclick="checkVPNAgain()" style="background: #FF5E00; border: none; padding: 0.875rem 2rem; border-radius: 40px; font-weight: 700; font-size: 1rem; cursor: pointer; color: white; transition: transform 0.2s;">Проверить соединение</button>
+        <div style="font-size: 0.7rem; color: #666; margin-top: 1rem;">Если вы не используете VPN, возможно проблема на стороне провайдера</div>
+    </div>
+</div>
+
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<script>
+    // Функция проверки VPN
+    async function checkVPN() {
+        try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            const countryCode = data.country_code;
+            
+            // Разрешённые страны (Россия и СНГ)
+            const allowedCountries = ['RU', 'BY', 'KZ', 'AM', 'KG', 'TJ', 'UZ', 'MD'];
+            
+            if (!allowedCountries.includes(countryCode)) {
+                // Показываем VPN баннер, блокируем сайт
+                document.getElementById('vpnOverlay').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.getElementById('vpnOverlay').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        } catch(e) {
+            // Если не можем определить регион — не блокируем
+            document.getElementById('vpnOverlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+    
+    function checkVPNAgain() {
+        checkVPN();
+    }
+    
+    // Запускаем проверку при загрузке страницы
+    document.addEventListener('DOMContentLoaded', checkVPN);
+</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
