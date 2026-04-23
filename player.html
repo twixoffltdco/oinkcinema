@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>OINK — просмотр</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .player-container { max-width: 1200px; margin: 2rem auto; background: #000; border-radius: 16px; overflow: hidden; }
+        .movie-info { padding: 1rem; background: #1a1a1a; }
+        .double-click-zone { cursor: pointer; transition: 0.2s; }
+        .recommendations { margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <header class="header"><div class="logo">OINK</div><div id="regionBadge"></div><a href="index.html" style="color:white;">← На главную</a></header>
+    
+    <div class="player-container" id="playerContainer">
+        <div id="kinobdPlaceholder" style="min-height: 500px; background:#000;"></div>
+        <div class="movie-info double-click-zone" id="movieInfoZone">
+            <h1 id="movieTitle">Загрузка фильма...</h1>
+            <p id="movieYear"></p>
+            <p id="movieDescription"></p>
+        </div>
+    </div>
+
+    <section class="recommendations">
+        <h2>📺 Похожие фильмы и сериалы</h2>
+        <div class="movies-grid" id="similarGrid">Рекомендации загрузятся после определения фильма...</div>
+    </section>
+
+    <script>
+        // Получаем ID кинопоиска из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const kinopoiskId = urlParams.get('kp_id');
+        if (!kinopoiskId) {
+            document.getElementById('movieTitle').innerText = 'Ошибка: не указан ID фильма';
+        } else {
+            loadMovieDetails(kinopoiskId);
+            loadSimilarMovies(kinopoiskId);
+            initPlayer(kinopoiskId);
+        }
+
+        async function loadMovieDetails(id) {
+            const apiKey = '960dc4e3-9eae-4072-8f0c-98a5ed6c0d2a';
+            const url = `https://kinopoiskapiunofficial.tech/api/v2.2/films/${id}`;
+            try {
+                const resp = await fetch(url, { headers: { 'X-API-KEY': apiKey } });
+                const data = await resp.json();
+                document.getElementById('movieTitle').innerText = data.nameRu || data.nameEn || 'Без названия';
+                document.getElementById('movieYear').innerHTML = `<strong>Год:</strong> ${data.year} | Рейтинг: ${data.ratingKinopoisk}`;
+                document.getElementById('movieDescription').innerText = data.description || 'Описание отсутствует.';
+                // Сохраняем в localStorage для куки-рекомендаций
+                let watchHistory = JSON.parse(localStorage.getItem('oink_history') || '[]');
+                if(!watchHistory.includes(id)) watchHistory.push(id);
+                localStorage.setItem('oink_history', JSON.stringify(watchHistory));
+                updateCookieInterests(id);
+            } catch(e) { console.error(e); }
+        }
+
+        function updateCookieInterests(filmId) {
+            // Куки-совместимость: сохраняем последние жанры (упрощённо)
+            document.cookie = `last_watched=${filmId}; path=/; max-age=2592000`;
+            // Для реальной системы — парсить жанры и сохранять массив.
+        }
+
+        function initPlayer(kpId) {
+            // Внедряем div с data-kinopoisk и скрипт плеера kinobd
+            const container = document.getElementById('kinobdPlaceholder');
+            const playerDiv = document.createElement('div');
+            playerDiv.setAttribute('data-kinopoisk', kpId);
+            playerDiv.setAttribute('id', 'kinobd');
+            container.innerHTML = '';
+            container.appendChild(playerDiv);
+            
+            const script = document.createElement('script');
+            script.src = 'https://kinobd.net/js/player_.js';
+            script.async = true;
+            document.body.appendChild(script);
+            
+            // Дополнительно подключаем kinobox как резервный источник
+            const kinoboxScript = document.createElement('script');
+            kinoboxScript.src = 'https://kinoboxtv.tatnet.app/kinobox.js';
+            kinoboxScript.async = true;
+            document.body.appendChild(kinoboxScript);
+        }
+
+        async function loadSimilarMovies(kpId) {
+            const apiKey = '960dc4e3-9eae-4072-8f0c-98a5ed6c0d2a';
+            const url = `https://kinopoiskapiunofficial.tech/api/v2.2/films/${kpId}/similars`;
+            try {
+                const res = await fetch(url, { headers: { 'X-API-KEY': apiKey } });
+                const data = await res.json();
+                const similar = data.items || [];
+                const grid = document.getElementById('similarGrid');
+                if(similar.length === 0) { grid.innerHTML = '<p>Нет рекомендаций, но вы можете поискать сами.</p>'; return; }
+                grid.innerHTML = similar.slice(0,8).map(film => `
+                    <div class="movie-card" data-kp="${film.filmId}" ondblclick="location.href='details.html?id=${film.filmId}'">
+                        <img src="${film.posterUrlPreview || 'https://via.placeholder.com/300x450?text=No+poster'}" alt="${film.nameRu}" loading="lazy">
+                        <h3>${film.nameRu}</h3>
+                        <div class="rating">⭐ ${film.rating}</div>
+                    </div>
+                `).join('');
+                attachCardClick();
+            } catch(e) { console.error(e); }
+        }
+
+        function attachCardClick() {
+            document.querySelectorAll('.movie-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if(e.detail === 2) { // двойной клик
+                        const kp = card.getAttribute('data-kp');
+                        window.open(`details.html?id=${kp}`, '_blank');
+                    } else {
+                        // одиночный клик — переход к просмотру
+                        const kp = card.getAttribute('data-kp');
+                        location.href = `player.html?kp_id=${kp}`;
+                    }
+                });
+            });
+        }
+
+        // двойной клик по зоне информации о фильме
+        document.getElementById('movieInfoZone')?.addEventListener('dblclick', () => {
+            if(kinopoiskId) window.open(`details.html?id=${kinopoiskId}`, '_blank');
+        });
+
+        // определение региона (IP)
+        fetch('https://ipapi.co/json/')
+            .then(r => r.json())
+            .then(data => {
+                const country = data.country_name;
+                document.getElementById('regionBadge').innerText = `📍 ${country || 'World'}`;
+                if(country === 'Russia') console.log('Доступ к контенту по РФ');
+            }).catch(() => document.getElementById('regionBadge').innerText = '📍 Регион не определён');
+    </script>
+</body>
+</html>
