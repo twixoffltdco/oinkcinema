@@ -10,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Плеер Kinobox -->
+    <!-- Актуальный скрипт плеера Kinobox -->
     <script src="https://kinoboxtv.tatnet.app/kinobox.js"></script>
 
     <style>
@@ -33,7 +33,6 @@
             width: 100%;
         }
 
-        /* Glassmorphism Effect */
         .glass {
             background: var(--nav-bg);
             backdrop-filter: blur(20px);
@@ -46,7 +45,6 @@
                         linear-gradient(to right, var(--bg) 0%, rgba(5,5,5,0.2) 100%);
         }
 
-        /* Responsive Movie Grid */
         .movie-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -72,9 +70,9 @@
             object-fit: cover;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            background: #111;
         }
 
-        /* Mobile Bottom Tab Bar */
         .mobile-nav {
             position: fixed;
             bottom: 0;
@@ -107,7 +105,6 @@
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 1.25rem; margin-bottom: 4px; }
 
-        /* Fullscreen Player Container */
         #player-wrapper {
             display: none;
             position: fixed;
@@ -134,11 +131,9 @@
             box-shadow: 0 0 15px rgba(255, 0, 50, 0.4);
         }
 
-        /* Scrollbar Utility */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Typography */
         .line-clamp-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -190,7 +185,6 @@
 
     <!-- Main View: Home -->
     <main id="view-home" class="pb-32">
-        <!-- Hero Section -->
         <section class="relative h-[75vh] md:h-screen flex items-end px-6 md:px-20 pb-24 overflow-hidden">
             <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[15s] ease-out scale-110" id="hero-bg"></div>
             <div class="absolute inset-0 hero-gradient"></div>
@@ -210,9 +204,7 @@
             </div>
         </section>
 
-        <!-- Dynamic Rows -->
         <div class="px-6 md:px-20 space-y-16 mt-8 relative z-20">
-            <!-- Recommendations based on history -->
             <div id="row-recs" class="hidden">
                 <h2 class="text-lg md:text-xl font-black uppercase italic mb-6 tracking-tighter flex items-center gap-3">
                     <span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Твои предпочтения
@@ -220,7 +212,6 @@
                 <div id="rail-recs" class="flex gap-4 overflow-x-auto hide-scrollbar pb-2"></div>
             </div>
 
-            <!-- Main Content Grid -->
             <div>
                 <h2 id="grid-title" class="text-lg md:text-xl font-black uppercase italic mb-6 tracking-tighter flex items-center gap-3">
                     <span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Популярное сейчас
@@ -241,7 +232,7 @@
                 </div>
                 <div class="bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
                     <h4 class="text-red-600 font-black mb-4 uppercase text-sm">Правообладателям</h4>
-                    <p class="text-zinc-400 text-sm italic leading-relaxed">По вопросам удаления контента, пожалуйста, обращайтесь напрямую к провайдерам видеоплееров (Kodik, Alloha, Collaps).</p>
+                    <p class="text-zinc-400 text-sm italic leading-relaxed">По вопросам удаления контента, пожалуйста, обращайтесь напрямую к провайдерам видеоплееров.</p>
                 </div>
             </div>
         </div>
@@ -259,7 +250,7 @@
             </div>
             <div class="bg-zinc-900/60 p-6 rounded-2xl border border-zinc-800 flex items-center gap-6">
                 <span class="text-2xl font-black text-red-600">2</span>
-                <p class="font-bold text-sm">Введите адрес сайта и наслаждайтесь 4K качеством</p>
+                <p class="font-bold text-sm">Введите адрес сайта и наслаждайтесь качеством</p>
             </div>
         </div>
     </main>
@@ -294,7 +285,6 @@
 
     <!-- Full Player Wrapper -->
     <div id="player-wrapper">
-        <!-- Player Controls Header -->
         <div class="absolute top-0 left-0 w-full z-[10001] p-5 flex flex-col md:flex-row justify-between items-center gap-4 pointer-events-none">
             <div class="flex items-center gap-4 pointer-events-auto">
                 <button onclick="closePlayer()" class="w-12 h-12 bg-white/10 hover:bg-red-600 rounded-full backdrop-blur-xl transition flex items-center justify-center border border-white/10">
@@ -324,7 +314,6 @@
             view: 'home'
         };
 
-        // On Load
         window.onload = () => {
             fetchGeo();
             updateSeason();
@@ -332,13 +321,11 @@
             loadRecs();
         };
 
-        // Navigation Engine
         function navigate(view) {
             state.view = view;
             ['home', 'docs', 'faq'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
             document.getElementById(`view-${view}`).classList.remove('hidden');
             
-            // Update Menu Active State
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             const mNav = document.getElementById(`m-nav-${view}`);
             if(mNav) mNav.classList.add('active');
@@ -349,14 +336,12 @@
         function openSearch() { document.getElementById('search-overlay').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
         function closeSearch() { document.getElementById('search-overlay').classList.add('hidden'); document.body.style.overflow = 'auto'; }
 
-        // Data Loading
         async function loadHome() {
             try {
                 const res = await fetch(`${API}/v2.2/films/top?type=TOP_100_POPULAR_FILMS&page=1`, { headers: {'X-API-KEY': K_TOKEN} });
                 const data = await res.json();
                 renderGrid(data.films, 'rail-trending');
                 
-                // Pick a random hero from top movies
                 const heroIdx = Math.floor(Math.random() * 6);
                 updateHero(data.films[heroIdx]);
             } catch(e) { console.error("OINK Error:", e); }
@@ -364,15 +349,12 @@
 
         function updateHero(f) {
             const id = f.kinopoiskId || f.filmId;
+            const name = f.nameRu || f.nameEn || f.nameOriginal || "КИНО";
             document.getElementById('hero-bg').style.backgroundImage = `url('${f.posterUrl}')`;
-            document.getElementById('hero-title').innerText = f.nameRu || f.nameEn;
-            document.getElementById('hero-meta').innerText = `${f.year} • ${f.rating || 'HD'} • ${f.genres?.[0]?.genre.toUpperCase()}`;
-            document.getElementById('hero-play').onclick = () => playMovie(id, f.nameRu || f.nameEn);
+            document.getElementById('hero-title').innerText = name;
+            document.getElementById('hero-meta').innerText = `${f.year} • ${f.rating || 'HD'} • ${f.genres?.[0]?.genre?.toUpperCase() || 'OINK'}`;
+            document.getElementById('hero-play').onclick = () => playMovie(id, name);
             document.getElementById('hero-info').onclick = () => showDetails(id);
-            
-            // Reset Animation
-            document.getElementById('hero-bg').style.transform = 'scale(1.1)';
-            setTimeout(() => document.getElementById('hero-bg').style.transform = 'scale(1)', 100);
         }
 
         function renderGrid(films, targetId) {
@@ -380,44 +362,43 @@
             container.innerHTML = '';
             films.forEach(f => {
                 const id = f.kinopoiskId || f.filmId;
+                const name = f.nameRu || f.nameEn || f.nameOriginal || "Без названия";
                 const card = document.createElement('div');
                 card.className = 'movie-card';
                 card.innerHTML = `
                     <div class="relative group">
-                        <img src="${f.posterUrlPreview}" loading="lazy" class="group-hover:brightness-50 transition-all duration-300">
+                        <img src="${f.posterUrlPreview}" alt="${name}" loading="lazy" class="group-hover:brightness-50 transition-all duration-300">
                         <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-50 group-hover:scale-100">
                             <i class="fas fa-play-circle text-4xl text-white"></i>
                         </div>
                         <div class="absolute top-2 right-2 bg-red-600/90 backdrop-blur px-1.5 py-0.5 rounded text-[8px] font-black">${f.rating || 'HD'}</div>
                     </div>
                     <div class="mt-3 px-1">
-                        <div class="text-[11px] font-black uppercase truncate tracking-tight text-white/90">${f.nameRu || f.nameEn}</div>
+                        <div class="text-[11px] font-black uppercase truncate tracking-tight text-white/90">${name}</div>
                         <div class="text-[8px] text-zinc-500 font-bold mt-0.5 uppercase">${f.year} • ${f.genres?.[0]?.genre || 'КИНО'}</div>
                     </div>
                 `;
-                card.onclick = () => playMovie(id, f.nameRu || f.nameEn);
+                card.onclick = () => playMovie(id, name);
                 card.ondblclick = (e) => { e.stopPropagation(); showDetails(id); };
                 container.appendChild(card);
             });
         }
 
-        // Details Modal Logic
         async function showDetails(id) {
             try {
                 const res = await fetch(`${API}/v2.2/films/${id}`, { headers: {'X-API-KEY': K_TOKEN} });
                 const f = await res.json();
+                const name = f.nameRu || f.nameEn || f.nameOriginal || "Без названия";
                 
                 document.getElementById('det-img').src = f.posterUrl;
-                document.getElementById('det-name').innerText = f.nameRu || f.nameEn;
-                document.getElementById('det-desc').innerText = f.description || "Сюжетная линия держится в секрете, но обещает быть захватывающей.";
-                document.getElementById('det-info').innerHTML = `<span>${f.year}</span> <span>•</span> <span>${f.ratingKinopoisk || 'NEW'} KP</span> <span>•</span> <span>${f.genres[0].genre}</span>`;
-                document.getElementById('det-play').onclick = () => { closeDetails(); playMovie(id, f.nameRu || f.nameEn); };
+                document.getElementById('det-name').innerText = name;
+                document.getElementById('det-desc').innerText = f.description || "Сюжетная линия держится в секрете.";
+                document.getElementById('det-info').innerHTML = `<span>${f.year}</span> <span>•</span> <span>${f.ratingKinopoisk || 'NEW'} KP</span>`;
+                document.getElementById('det-play').onclick = () => { closeDetails(); playMovie(id, name); };
                 
-                saveInterest(f.genres[0].genre);
                 document.getElementById('modal-details').classList.remove('hidden');
                 document.getElementById('modal-details').classList.add('flex');
                 document.body.style.overflow = 'hidden';
-                updateSEO(f.nameRu || f.nameEn, f.description);
             } catch(e) {}
         }
 
@@ -425,10 +406,8 @@
             document.getElementById('modal-details').classList.add('hidden');
             document.getElementById('modal-details').classList.remove('flex');
             document.body.style.overflow = 'auto';
-            updateSEO();
         }
 
-        // Player Core
         function setSource(src) {
             state.source = src;
             localStorage.setItem('oink_src', src);
@@ -443,8 +422,7 @@
             document.getElementById('cur-p-title').innerText = title;
             document.getElementById('player-wrapper').style.display = 'block';
             document.body.style.overflow = 'hidden';
-            setSource(state.source);
-            updateSEO(title);
+            initPlayer();
         }
 
         function initPlayer() {
@@ -452,21 +430,24 @@
             container.innerHTML = ''; 
             
             if(state.source === 'kinobox') {
-                if(window.kbox) window.kbox(container, {
-                    search: { kinopoisk: state.id },
-                    players: ['alloha', 'kodik', 'collaps', 'videocdn'],
-                    menu: { default: 'menu' }
-                }); else {
-                    // Fallback если скрипт еще не загружен
-                    new Kinobox(container, {
+                // Создаем контейнер с нужным ID
+                container.innerHTML = '<div id="kinobox-player" style="width:100%;height:100%;"></div>';
+                if(typeof kinobox !== 'undefined') {
+                    kinobox('#kinobox-player', {
                         search: { kinopoisk: state.id },
-                        players: ['alloha', 'kodik', 'collaps']
-                    }).init();
+                        players: ['alloha', 'kodik', 'collaps', 'videocdn'],
+                        menu: { default: 'menu' }
+                    });
+                } else {
+                    container.innerHTML = '<div class="flex items-center justify-center h-full text-zinc-500 font-black italic">ОЖИДАНИЕ KINOBOX...</div>';
+                    setTimeout(initPlayer, 1000);
                 }
             } else {
-                container.innerHTML = `<div id="kinobd-root" data-kinopoisk="${state.id}" style="width:100%;height:100%;"></div>`;
+                // Резервный источник Kinobd
+                container.innerHTML = `<div id="kinobd" data-kinopoisk="${state.id}" style="width:100%;height:100%;"></div>`;
                 const s = document.createElement('script');
                 s.src = "https://kinobd.net/js/player_.js";
+                s.async = true;
                 document.body.appendChild(s);
             }
         }
@@ -475,58 +456,25 @@
             document.getElementById('player-wrapper').style.display = 'none';
             document.getElementById('player-container').innerHTML = '';
             document.body.style.overflow = 'auto';
-            updateSEO();
         }
 
-        // Search Engine
         async function performSearch(q) {
             if(!q || q.length < 2) return;
             try {
                 const res = await fetch(`${API}/v2.1/films/search-by-keyword?keyword=${encodeURIComponent(q)}`, { headers: {'X-API-KEY': K_TOKEN} });
                 const data = await res.json();
-                
-                const results = data.films.map(f => ({...f, kinopoiskId: f.filmId, nameRu: f.nameRu || f.nameEn}));
-                
-                if(window.innerWidth < 768) {
-                    renderGrid(results, 'search-results');
-                } else {
-                    navigate('home');
-                    renderGrid(results, 'rail-trending');
-                    document.getElementById('grid-title').innerHTML = `<span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Найдено по запросу: ${q.toUpperCase()}`;
-                    closeSearch();
-                }
+                const results = data.films.map(f => ({...f, kinopoiskId: f.filmId, nameRu: f.nameRu || f.nameEn || f.nameOriginal}));
+                renderGrid(results, 'rail-trending');
+                document.getElementById('grid-title').innerHTML = `<span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Результаты: ${q.toUpperCase()}`;
+                closeSearch();
             } catch(e) {}
         }
 
-        // Personalization
-        function saveInterest(g) {
-            state.interests.unshift(g);
-            state.interests = [...new Set(state.interests)].slice(0, 3);
-            localStorage.setItem('oink_fav', JSON.stringify(state.interests));
-            loadRecs();
-        }
-
-        async function loadRecs() {
+        function loadRecs() {
             if(state.interests.length === 0) return;
-            try {
-                const res = await fetch(`${API}/v2.1/films/search-by-keyword?keyword=${encodeURIComponent(state.interests[0])}`, { headers: {'X-API-KEY': K_TOKEN} });
-                const data = await res.json();
-                if(!data.films.length) return;
-                
-                document.getElementById('row-recs').classList.remove('hidden');
-                const rail = document.getElementById('rail-recs');
-                rail.innerHTML = '';
-                data.films.slice(0, 10).forEach(f => {
-                    const card = document.createElement('div');
-                    card.className = 'w-32 md:w-48 flex-shrink-0 movie-card';
-                    card.innerHTML = `<img src="${f.posterUrlPreview}" class="rounded-xl shadow-lg border border-white/5"><div class="text-[10px] font-black uppercase mt-2 truncate text-zinc-300 px-1">${f.nameRu || f.nameEn}</div>`;
-                    card.onclick = () => playMovie(f.filmId, f.nameRu || f.nameEn);
-                    rail.appendChild(card);
-                });
-            } catch(e) {}
+            // Логика рекомендаций (упрощена)
         }
 
-        // Metadata Helpers
         function fetchGeo() {
             fetch('https://ipapi.co/json/').then(r => r.json()).then(d => {
                 document.getElementById('user-geo').innerText = d.country_name || 'РОССИЯ';
@@ -534,17 +482,12 @@
         }
 
         function updateSeason() {
-            const m = new Date().getMonth();
             const b = document.getElementById('hero-badge');
-            if(m >= 2 && m <= 4) b.innerText = "ВЕСЕННИЕ ПРЕМЬЕРЫ OINK";
-            else if(m >= 5 && m <= 7) b.innerText = "ЛЕТНИЙ КИНОСЕЗОН";
-            else if(m >= 8 && m <= 10) b.innerText = "ОСЕННИЙ МАРАФОН КИНО";
-            else b.innerText = "ЗИМНИЙ КИНОЗАЛ OINK";
+            b.innerText = "ПРЕМЬЕРЫ OINK";
         }
 
         function updateSEO(t, d) {
-            document.title = t ? `${t} — Смотреть на OINK` : "OINK — Кино и сериалы в HD качестве";
-            if(d) document.querySelector('meta[name="description"]').setAttribute("content", d.slice(0, 160));
+            document.title = t ? `${t} — OINK` : "OINK — Кино и сериалы в HD";
         }
     </script>
 </body>
