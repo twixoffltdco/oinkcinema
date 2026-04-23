@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Детали фильма — OINK</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header"><div class="logo">OINK</div><a href="index.html" style="color:white;">← На главную</a></header>
+    <div class="details-container" id="detailsContainer">
+        <div class="spinner">Загрузка подробной информации...</div>
+    </div>
+    <script>
+        const urlId = new URLSearchParams(location.search).get('id');
+        if(urlId) {
+            fetch(`https://kinopoiskapiunofficial.tech/api/v2.2/films/${urlId}`, {
+                headers: { 'X-API-KEY': '960dc4e3-9eae-4072-8f0c-98a5ed6c0d2a' }
+            })
+            .then(res => res.json())
+            .then(film => {
+                document.title = `${film.nameRu} — подробности`;
+                document.getElementById('detailsContainer').innerHTML = `
+                    <div class="detail-card">
+                        <img src="${film.posterUrl || film.posterUrlPreview}" style="max-width:300px; border-radius:16px;">
+                        <h1>${film.nameRu} (${film.year})</h1>
+                        <p><strong>Рейтинг:</strong> ${film.ratingKinopoisk} (Кинопоиск)</p>
+                        <p><strong>Жанры:</strong> ${film.genres.map(g=>g.genre).join(', ')}</p>
+                        <p><strong>Описание:</strong> ${film.description || 'Нет описания'}</p>
+                        <p><strong>Страна:</strong> ${film.countries.map(c=>c.country).join(', ')}</p>
+                        <button onclick="location.href='player.html?kp_id=${urlId}'">▶ Смотреть сейчас</button>
+                    </div>
+                `;
+            }).catch(err => {
+                document.getElementById('detailsContainer').innerHTML = '<p>Ошибка загрузки деталей. Попробуйте позже.</p>';
+            });
+        } else {
+            document.getElementById('detailsContainer').innerHTML = '<p>Не передан ID фильма.</p>';
+        }
+    </script>
+</body>
+</html>
