@@ -11,88 +11,75 @@
 <script>
 (function() {
     let bannerShown = false;
-    let attempts = 0;
-    const MAX_ATTEMPTS = 10;
+    let bannerElement = null;
+    let checkInterval = null;
     
     function createCrashBanner() {
         if (document.getElementById('oink-crash-banner')) return;
         
-        const banner = document.createElement('div');
-        banner.id = 'oink-crash-banner';
-        banner.innerHTML = `
-            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.96); z-index: 999999; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, sans-serif; backdrop-filter: blur(12px);">
+        bannerElement = document.createElement('div');
+        bannerElement.id = 'oink-crash-banner';
+        bannerElement.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.97); z-index: 999999; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, sans-serif; backdrop-filter: blur(12px);">
                 <div style="background: linear-gradient(145deg, #151515, #0a0a0a); border-radius: 48px; padding: 2.5rem; max-width: 500px; width: 90%; text-align: center; border: 2px solid #ff3a00; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
-                    <div style="font-size: 72px; margin-bottom: 20px;">🛠️</div>
-                    <h2 style="color: #ff3a00; font-size: 26px; font-weight: 900; margin-bottom: 16px; letter-spacing: -0.5px;">Платформа дает сбои</h2>
-                    <p style="color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 20px;">
+                    <div style="font-size: 72px; margin-bottom: 20px;">⚠️</div>
+                    <h2 style="color: #ff3a00; font-size: 26px; font-weight: 900; margin-bottom: 16px;">ПЛАТФОРМА ДАЕТ СБОИ</h2>
+                    <p style="color: #aaa; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
                         В данный момент сервис временно недоступен.<br>
                         Пожалуйста, <strong>зайдите позже</strong>.
                     </p>
                     <div style="background: #1a1a1a; border-radius: 20px; padding: 12px; margin-bottom: 28px; border: 1px solid #2a2a2a;">
-                        <p style="color: #ff3a00; font-size: 12px; margin: 0; font-family: monospace;">⚠️ Интерфейс OINK не загрузился</p>
+                        <p style="color: #ff3a00; font-size: 12px; margin: 0;">⚠️ Интерфейс OINK не загрузился</p>
                         <p style="color: #666; font-size: 10px; margin: 6px 0 0 0;">Ошибка соединения с API Кинопоиска</p>
                     </div>
-                    <button onclick="location.reload()" style="background: #ff3a00; border: none; padding: 15px 0; border-radius: 100px; font-weight: 700; font-size: 15px; cursor: pointer; color: white; width: 100%; transition: 0.2s; box-shadow: 0 4px 15px rgba(255,58,0,0.3);">
+                    <button onclick="location.reload()" style="background: #ff3a00; border: none; padding: 15px 0; border-radius: 100px; font-weight: 700; font-size: 15px; cursor: pointer; color: white; width: 100%; transition: 0.2s;">
                         🔄 Попробовать снова
                     </button>
-                    <p style="color: #444; font-size: 11px; margin-top: 20px;">OINK — Кино и сериалы</p>
                 </div>
             </div>
         `;
-        document.body.appendChild(banner);
+        document.body.appendChild(bannerElement);
         document.body.style.overflow = 'hidden';
         bannerShown = true;
-        console.log('[OINK] Баннер сбоя показан');
+        
+        // Останавливаем проверки, чтобы баннер не исчез
+        if (checkInterval) clearInterval(checkInterval);
+        console.log('[OINK] Баннер сбоя ПОКАЗАН и зафиксирован');
     }
     
-    function checkCrash() {
-        attempts++;
+    function checkAndShowCrash() {
+        // Ищем фильмы в сетке
+        const movieCards = document.querySelectorAll('.movie-card');
+        const hasMovies = movieCards.length > 0;
         
-        // Ищем любые признаки работающего интерфейса
-        const hasHeroBg = !!document.getElementById('hero-bg');
-        const hasHeroImage = hasHeroBg && document.getElementById('hero-bg').style.backgroundImage && 
-                             document.getElementById('hero-bg').style.backgroundImage !== 'url("")' &&
-                             !document.getElementById('hero-bg').style.backgroundImage.includes('null');
+        // Ищем постер героя
+        const heroBg = document.getElementById('hero-bg');
+        let hasPoster = false;
+        if (heroBg) {
+            const bgImage = heroBg.style.backgroundImage;
+            hasPoster = bgImage && bgImage !== 'url("")' && !bgImage.includes('null') && !bgImage.includes('undefined');
+        }
         
-        const hasMovieCard = !!document.querySelector('.movie-card');
-        const hasMovieGrid = !!document.getElementById('rail-trending');
-        const hasAnyContent = document.body && document.body.innerHTML && document.body.innerHTML.length > 2000;
+        // Если нет фильмов ИЛИ нет постера через 4 секунды после загрузки — показываем баннер НАВСЕГДА
+        const hasContent = document.body && document.body.innerHTML && document.body.innerHTML.length > 3000;
         
-        // Если прошло 3+ попытки и нет признаков работы ИЛИ полностью белый экран (нет контента)
-        const isDead = attempts >= 3 && (!hasHeroImage || !hasMovieCard || !hasAnyContent);
-        const isCompletelyWhite = document.body && document.body.innerHTML.trim().length < 500;
-        
-        if ((isDead || isCompletelyWhite) && !bannerShown) {
+        if (!hasMovies || !hasPoster) {
+            console.log('[OINK] Детект сбоя — фильмов:', hasMovies, 'постер:', hasPoster);
             createCrashBanner();
-        }
-        
-        // Если нашлись фильмы и всё работает — отменяем проверку
-        if (hasMovieCard && hasHeroImage && bannerShown) {
-            const banner = document.getElementById('oink-crash-banner');
-            if (banner) banner.remove();
-            document.body.style.overflow = '';
-            bannerShown = false;
-            console.log('[OINK] Всё заработало, баннер убран');
-            clearInterval(interval);
-        }
-        
-        // Если всё работает с самого начала — просто вырубаем проверку
-        if (hasMovieCard && hasHeroImage && !bannerShown && attempts >= 3) {
-            console.log('[OINK] Интерфейс работает нормально');
-            clearInterval(interval);
-        }
-        
-        // Максимум 10 попыток, потом вырубаем
-        if (attempts >= MAX_ATTEMPTS && !bannerShown) {
-            clearInterval(interval);
+        } else {
+            console.log('[OINK] Всё работает, баннер не нужен');
+            if (checkInterval) clearInterval(checkInterval);
         }
     }
     
-    // Запускаем проверку каждые 2 секунды, начиная через 2 секунды после загрузки
+    // Ждём 4 секунды, чтобы сайт попытался загрузиться
     setTimeout(() => {
-        checkCrash();
-        var interval = setInterval(checkCrash, 2000);
-    }, 2000);
+        checkAndShowCrash();
+        // Проверяем ещё раз через 2 секунды на всякий случай
+        setTimeout(() => {
+            if (!bannerShown) checkAndShowCrash();
+        }, 2000);
+    }, 4000);
 })();
 </script>
 <!-- Верхний рекламный блок -->
