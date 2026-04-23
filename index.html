@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>OINK — онлайн кинотеатр. Смотрите фильмы и сериалы бесплатно</title>
+    <meta name="description" content="OINK — легальный онлайн-кинотеатр с плеерами высокого качества. Тысячи фильмов, сериалов, шоу. Рекомендации по интересам.">
+    <meta name="keywords" content="онлайн кинотеатр, смотреть фильмы, сериалы, OINK, бесплатно">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://oink.cinema">
+    <meta property="og:title" content="OINK — кинотеатр нового поколения">
+    <meta property="og:description" content="Умные рекомендации, тысячи фильмов и сериалов. Встроенные плееры kinobd и kinobox.">
+    <meta property="og:image" content="https://oink.cinema/og-image.jpg">
+    <meta property="og:url" content="https://oink.cinema">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Favicon placeholder -->
+</head>
+<body>
+    <!-- Cookie consent banner -->
+    <div id="cookieConsent" class="cookie-consent">
+        <div class="cookie-text">🍪 Мы используем куки, чтобы рекомендовать фильмы по вашим интересам, анализировать просмотры и улучшать сайт. Продолжая использовать OINK, вы соглашаетесь с <a href="#">политикой обработки данных</a>.</div>
+        <button id="acceptCookies" class="cookie-btn">Принять и продолжить</button>
+    </div>
+
+    <!-- Header / Nav -->
+    <header class="header">
+        <div class="logo">OINK<span class="beta">beta</span></div>
+        <div class="region-badge" id="regionBadge">📍 Определяем регион...</div>
+        <div class="nav-links">
+            <a href="#" class="active">Главная</a>
+            <a href="#seasons">По сезонам</a>
+            <a href="#trending">Смотрят сейчас</a>
+            <a href="docs.html">Docs</a>
+            <a href="faq.html">FAQ</a>
+            <a href="terms.html">Условия</a>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Поиск фильмов, сериалов, актеров...">
+            <button id="searchBtn">🔍</button>
+        </div>
+    </header>
+
+    <!-- Main hero section like start.ru -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>OINK — смотрите, что хотите</h1>
+            <p>Тысячи фильмов, сериалов и шоу с плеерами Kinobd & Kinobox. Рекомендации ИИ на основе ваших вкусов.</p>
+        </div>
+    </section>
+
+    <!-- Recommended based on cookies (interests) -->
+    <section class="section">
+        <h2>🎯 Рекомендации для вас</h2>
+        <div class="movies-grid" id="recommendedGrid">Загрузка...</div>
+    </section>
+
+    <!-- What users are watching now (trending) -->
+    <section class="section" id="trending">
+        <h2>🔥 Сейчас смотрят пользователи OINK</h2>
+        <div class="movies-grid" id="trendingGrid">Загрузка трендов...</div>
+    </section>
+
+    <!-- Seasonal picks (what to watch this spring/summer/autumn/winter) -->
+    <section class="section" id="seasons">
+        <h2>🌿 Что посмотреть этой весной?</h2>
+        <div class="movies-grid" id="seasonalGrid">Подбираем сезонные новинки...</div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="docs.html">Docs API</a>
+            <a href="faq.html">FAQ</a>
+            <a href="privacy.html">Политика конфиденциальности</a>
+            <a href="terms.html">Пользовательское соглашение</a>
+            <a href="smarttv.html">Smart TV подключение</a>
+        </div>
+        <div class="copy">© 2026 OINK Cinema. Кино по-новому.</div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
