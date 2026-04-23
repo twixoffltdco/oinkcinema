@@ -1,28 +1,25 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OINK — Смотреть кино онлайн в HD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title id="site-title">OINK — Кино и сериалы в HD</title>
     
-    <!-- SEO -->
-    <meta name="description" content="OINK - твой персональный кинотеатр с умными рекомендациями.">
-    <meta name="keywords" content="кино, сериалы, oink, смотреть онлайн, кинопоиск">
+    <meta name="description" id="meta-desc" content="Смотрите тысячи фильмов и сериалов на OINK. Умные рекомендации и высокое качество.">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Плееры (Kinobox + Kinobd) -->
-    <script src="https://kinoboxtv.tatnet.app/kinobox.js"></script>
-    <script src="https://kinobd.net/js/player_.js"></script>
-    
+    <!-- Плеер Kinobox -->
+    <script src="https://kinobox.tv/static/js/kinobox.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;500;800&display=swap');
 
         :root {
             --accent: #ff0032;
             --bg: #050505;
+            --nav-bg: rgba(10, 10, 10, 0.95);
         }
 
         body {
@@ -30,64 +27,88 @@
             color: #fff;
             font-family: 'Manrope', sans-serif;
             margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
             overflow-x: hidden;
+            width: 100%;
         }
 
-        .nav-glass {
-            background: rgba(5, 5, 5, 0.85);
-            backdrop-filter: blur(15px);
+        /* Glassmorphism Effect */
+        .glass {
+            background: var(--nav-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
+        .hero-gradient {
+            background: linear-gradient(to top, var(--bg) 5%, transparent 60%),
+                        linear-gradient(to right, var(--bg) 0%, rgba(5,5,5,0.2) 100%);
+        }
+
+        /* Responsive Movie Grid */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+        }
+
+        @media (min-width: 640px) { .movie-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
+        @media (min-width: 1024px) { .movie-grid { grid-template-columns: repeat(5, 1fr); gap: 20px; } }
+        @media (min-width: 1536px) { .movie-grid { grid-template-columns: repeat(6, 1fr); } }
+
         .movie-card {
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
             cursor: pointer;
-            flex-shrink: 0;
-            width: 180px;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
-        @media (min-width: 768px) { .movie-card { width: 230px; } }
-
-        .movie-card:hover {
-            transform: scale(1.05);
-            z-index: 10;
-        }
-
+        .movie-card:hover { transform: translateY(-5px) scale(1.02); z-index: 10; }
+        
         .movie-card img {
-            border-radius: 12px;
             width: 100%;
             aspect-ratio: 2/3;
             object-fit: cover;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
         }
 
-        .hero-vignette {
-            background: linear-gradient(to top, var(--bg) 5%, rgba(5,5,5,0) 50%, rgba(5,5,5,0.8) 100%),
-                        linear-gradient(to right, var(--bg) 0%, rgba(5,5,5,0) 60%);
+        /* Mobile Bottom Tab Bar */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            z-index: 5000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: env(safe-area-inset-bottom);
+            background: rgba(10, 10, 10, 0.98);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
         }
 
-        .btn-main {
-            background: var(--accent);
-            padding: 12px 28px;
-            border-radius: 8px;
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            color: #666;
+            width: 25%;
             transition: 0.3s;
         }
 
-        .btn-main:hover { opacity: 0.85; transform: translateY(-2px); }
+        .nav-item.active { color: var(--accent); }
+        .nav-item i { font-size: 1.25rem; margin-bottom: 4px; }
 
-        .logo-box { line-height: 0.9; }
-        .geo-tag {
-            color: var(--accent);
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
-        #player-overlay {
+        /* Fullscreen Player Container */
+        #player-wrapper {
             display: none;
             position: fixed;
             inset: 0;
@@ -95,362 +116,435 @@
             z-index: 9999;
         }
 
-        .details-blur {
-            background: rgba(10, 10, 10, 0.9);
-            backdrop-filter: blur(30px);
+        .source-btn {
+            background: rgba(255,255,255,0.08);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            transition: 0.2s;
+            pointer-events: auto;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
+        .source-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(255, 0, 50, 0.4);
+        }
+
+        /* Scrollbar Utility */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Typography */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     </style>
 </head>
-<body>
+<body class="bg-black">
 
-    <!-- Навигация -->
-    <nav class="nav-glass fixed top-0 w-full z-[1000] px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-12">
-            <div class="logo-box cursor-pointer" onclick="showPage('home')">
-                <div class="text-3xl font-black italic">OINK</div>
-                <div class="geo-tag" id="current-region">RUSSIA</div>
+    <!-- Desktop Header -->
+    <nav class="glass fixed top-0 w-full z-[4000] px-8 py-4 hidden md:flex items-center justify-between">
+        <div class="flex items-center gap-10">
+            <div class="cursor-pointer" onclick="navigate('home')">
+                <div class="text-3xl font-black italic tracking-tighter text-white">OINK</div>
+                <div id="user-geo" class="text-[9px] text-red-600 font-black tracking-[3px] uppercase">РОССИЯ</div>
             </div>
-            <div class="hidden md:flex gap-8 text-[11px] font-bold uppercase tracking-widest text-zinc-400">
-                <button onclick="showPage('home')" class="hover:text-white transition">Главная</button>
-                <button onclick="showPage('docs')" class="hover:text-white transition">Инфо</button>
-                <button onclick="showPage('faq')" class="hover:text-white transition">Smart TV</button>
+            <div class="flex gap-8 text-[11px] font-black uppercase tracking-widest text-zinc-500">
+                <button onclick="navigate('home')" class="hover:text-white transition">Главная</button>
+                <button onclick="navigate('docs')" class="hover:text-white transition">Право</button>
+                <button onclick="navigate('faq')" class="hover:text-white transition">Smart TV</button>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="relative">
-                <input id="search-input" type="text" placeholder="Поиск..." class="bg-zinc-900 border border-zinc-800 rounded-full py-2 px-6 text-sm focus:outline-none focus:border-red-600 w-40 md:w-64">
-                <button onclick="handleSearch()" class="absolute right-4 top-2.5 text-zinc-500"><i class="fas fa-search"></i></button>
-            </div>
+        <div class="relative w-72">
+            <input id="search-desktop" onkeyup="if(event.key==='Enter')performSearch(this.value)" type="text" placeholder="Поиск..." class="bg-zinc-900 border border-zinc-800 rounded-xl py-2 px-10 text-sm focus:outline-none focus:border-red-600 w-full transition-all text-white">
+            <i class="fas fa-search absolute left-4 top-3 text-zinc-600"></i>
         </div>
     </nav>
 
-    <!-- Главная страница -->
-    <main id="page-home" class="transition-opacity duration-500">
-        <!-- Hero -->
-        <section class="relative h-[85vh] flex items-center px-6 md:px-20 overflow-hidden">
-            <div id="hero-bg" class="absolute inset-0 bg-cover bg-center transition-all duration-1000" style="background-image: url('https://avatars.mds.yandex.net/get-ott/224348/2a00000171171804f5e71887e14f9d0c6488/orig')"></div>
-            <div class="absolute inset-0 hero-vignette"></div>
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-nav md:hidden">
+        <button onclick="navigate('home')" class="nav-item active" id="m-nav-home">
+            <i class="fas fa-home"></i>
+            <span>Домой</span>
+        </button>
+        <button onclick="openSearch()" class="nav-item">
+            <i class="fas fa-search"></i>
+            <span>Поиск</span>
+        </button>
+        <button onclick="navigate('docs')" class="nav-item" id="m-nav-docs">
+            <i class="fas fa-info-circle"></i>
+            <span>Инфо</span>
+        </button>
+        <button onclick="navigate('faq')" class="nav-item" id="m-nav-faq">
+            <i class="fas fa-tv"></i>
+            <span>ТВ</span>
+        </button>
+    </div>
+
+    <!-- Main View: Home -->
+    <main id="view-home" class="pb-32">
+        <!-- Hero Section -->
+        <section class="relative h-[75vh] md:h-screen flex items-end px-6 md:px-20 pb-24 overflow-hidden">
+            <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[15s] ease-out scale-110" id="hero-bg"></div>
+            <div class="absolute inset-0 hero-gradient"></div>
             
-            <div class="relative z-10 max-w-2xl">
-                <div id="seasonal-label" class="text-red-600 font-black text-xs uppercase tracking-[0.3em] mb-4">Подборка весны</div>
-                <h1 id="hero-title" class="text-5xl md:text-8xl font-black uppercase italic leading-none mb-6">Хиты<br>OINK</h1>
-                <p class="text-zinc-400 text-lg mb-10 italic">Умный алгоритм подобрал контент на основе ваших предпочтений.</p>
-                <button onclick="playRandom()" class="btn-main">Смотреть бесплатно</button>
+            <div class="relative z-10 w-full">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-red-600 text-[9px] font-black px-2 py-1 rounded uppercase tracking-wider" id="hero-badge">OINK EXCLUSIVE</span>
+                    <span id="hero-meta" class="text-[10px] font-bold text-zinc-400 tracking-widest uppercase"></span>
+                </div>
+                <h1 id="hero-title" class="text-5xl md:text-8xl font-black italic uppercase leading-[0.9] mb-8 tracking-tighter"></h1>
+                <div class="flex gap-3">
+                    <button id="hero-play" class="bg-white text-black hover:bg-red-600 hover:text-white px-8 py-4 rounded-xl font-black uppercase text-xs transition-all active:scale-95 flex items-center gap-2 shadow-xl">
+                        <i class="fas fa-play"></i> Смотреть
+                    </button>
+                    <button id="hero-info" class="bg-zinc-900/80 backdrop-blur px-8 py-4 rounded-xl font-black uppercase text-xs transition border border-white/5">О фильме</button>
+                </div>
             </div>
         </section>
 
-        <!-- Ряды карточек -->
-        <div class="px-6 md:px-20 -mt-20 relative z-20 pb-20 space-y-16">
-            <!-- Персональные -->
-            <div id="row-personal" class="hidden">
-                <h3 class="text-xl font-black mb-6 flex items-center gap-3 italic uppercase"><span class="w-1 h-6 bg-red-600"></span> Специально для вас</h3>
-                <div id="rail-personal" class="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4"></div>
+        <!-- Dynamic Rows -->
+        <div class="px-6 md:px-20 space-y-16 mt-8 relative z-20">
+            <!-- Recommendations based on history -->
+            <div id="row-recs" class="hidden">
+                <h2 class="text-lg md:text-xl font-black uppercase italic mb-6 tracking-tighter flex items-center gap-3">
+                    <span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Твои предпочтения
+                </h2>
+                <div id="rail-recs" class="flex gap-4 overflow-x-auto hide-scrollbar pb-2"></div>
             </div>
 
-            <!-- Тренды -->
+            <!-- Main Content Grid -->
             <div>
-                <h3 class="text-xl font-black mb-6 flex items-center gap-3 italic uppercase"><span class="w-1 h-6 bg-white"></span> В тренде</h3>
-                <div id="rail-trending" class="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4"></div>
-            </div>
-
-            <!-- Популярное -->
-            <div>
-                <h3 id="seasonal-title" class="text-xl font-black mb-6 flex items-center gap-3 italic uppercase"><span class="w-1 h-6 bg-red-600"></span> Популярное сейчас</h3>
-                <div id="rail-popular" class="flex gap-4 md:gap-6 overflow-x-auto hide-scrollbar pb-4"></div>
+                <h2 id="grid-title" class="text-lg md:text-xl font-black uppercase italic mb-6 tracking-tighter flex items-center gap-3">
+                    <span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Популярное сейчас
+                </h2>
+                <div id="rail-trending" class="movie-grid"></div>
             </div>
         </div>
     </main>
 
-    <!-- Инфо / Документы -->
-    <main id="page-docs" class="hidden pt-32 px-6 md:px-20 max-w-4xl mx-auto pb-20">
-        <h2 class="text-4xl font-black mb-10 uppercase italic">Документы и условия</h2>
-        <div class="space-y-8 text-zinc-400 leading-relaxed">
-            <div class="bg-zinc-900/50 p-8 rounded-2xl border border-zinc-800">
-                <h4 class="text-white font-bold mb-4 uppercase">О сервисе</h4>
-                <p>OINK — это технологичный агрегатор медиа-контента. Мы предоставляем удобный интерфейс для поиска и просмотра фильмов из открытых источников. Весь контент транслируется через сторонние плееры (Kinobox, Kinobd).</p>
-            </div>
-            <div class="bg-zinc-900/50 p-8 rounded-2xl border border-zinc-800">
-                <h4 class="text-white font-bold mb-4 uppercase">Политика Cookies</h4>
-                <p>Для работы рекомендательной системы мы используем Cookies. Это позволяет нам понимать, какие жанры вам нравятся, и выводить их в блок "Специально для вас".</p>
-            </div>
-        </div>
-    </main>
-
-    <!-- Smart TV / FAQ -->
-    <main id="page-faq" class="hidden pt-32 px-6 md:px-20 max-w-4xl mx-auto pb-20">
-        <h2 class="text-4xl font-black mb-10 uppercase italic">Помощь и Smart TV</h2>
-        <div class="grid md:grid-cols-2 gap-8">
-            <div class="bg-zinc-900/50 p-8 rounded-2xl border border-zinc-800">
-                <h4 class="text-red-600 font-bold mb-4">КАК СМОТРЕТЬ НА ТВ?</h4>
-                <p class="text-sm text-zinc-400">Просто откройте браузер на вашем Smart TV (LG, Samsung, Android) и введите адрес сайта. Интерфейс адаптирован под управление пультом.</p>
-            </div>
-            <div class="bg-zinc-900/50 p-8 rounded-2xl border border-zinc-800">
-                <h4 class="text-red-600 font-bold mb-4">ПРОБЛЕМЫ С ПЛЕЕРОМ?</h4>
-                <p class="text-sm text-zinc-400">Если видео не грузится, нажмите на иконку шестеренки в плеере и смените источник (AllHya, Kodik и т.д.). Мы используем несколько зеркал для стабильности.</p>
-            </div>
-        </div>
-    </main>
-
-    <!-- Модалка Подробностей (Двойной клик) -->
-    <div id="details-modal" class="fixed inset-0 z-[5000] hidden items-center justify-center p-4 details-blur" onclick="closeDetails()">
-        <div class="max-w-5xl w-full bg-zinc-900 rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-2xl" onclick="event.stopPropagation()">
-            <img id="det-poster" src="" class="w-full md:w-80 object-cover">
-            <div class="p-8 md:p-12 flex-1">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h2 id="det-title" class="text-3xl md:text-5xl font-black uppercase italic mb-2">Название</h2>
-                        <div id="det-meta" class="text-red-600 font-bold text-sm space-x-4"></div>
-                    </div>
-                    <button onclick="closeDetails()" class="text-3xl text-zinc-500 hover:text-white">&times;</button>
+    <!-- Documents View -->
+    <main id="view-docs" class="hidden pt-32 px-6 md:px-20 pb-32">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-4xl font-black uppercase italic mb-10">Юридическая информация</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
+                    <h4 class="text-red-600 font-black mb-4 uppercase text-sm">Отказ от ответственности</h4>
+                    <p class="text-zinc-400 text-sm italic leading-relaxed">Данный ресурс является поисковой системой. Весь контент берется из открытых API источников. Мы не храним видео на своих серверах.</p>
                 </div>
-                <p id="det-desc" class="text-zinc-400 text-lg leading-relaxed mb-10"></p>
-                <div class="flex gap-6 mb-10">
-                    <div class="text-center">
-                        <div class="text-xs text-zinc-500 uppercase font-bold mb-1">Рейтинг</div>
-                        <div id="det-rating" class="text-2xl font-black text-white">8.5</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-xs text-zinc-500 uppercase font-bold mb-1">Время</div>
-                        <div id="det-time" class="text-2xl font-black text-white">120м</div>
-                    </div>
+                <div class="bg-zinc-900/50 p-8 rounded-3xl border border-zinc-800">
+                    <h4 class="text-red-600 font-black mb-4 uppercase text-sm">Правообладателям</h4>
+                    <p class="text-zinc-400 text-sm italic leading-relaxed">По вопросам удаления контента, пожалуйста, обращайтесь напрямую к провайдерам видеоплееров (Kodik, Alloha, Collaps).</p>
                 </div>
-                <button id="det-play-btn" class="w-full btn-main text-lg py-5">Смотреть прямо сейчас</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Smart TV View -->
+    <main id="view-faq" class="hidden pt-32 px-6 md:px-20 pb-32 text-center">
+        <i class="fas fa-tv text-6xl text-red-600 mb-8"></i>
+        <h2 class="text-4xl font-black uppercase italic mb-4">OINK на твоем телевизоре</h2>
+        <p class="text-zinc-500 max-w-xl mx-auto italic mb-12">Смотрите любимое кино на большом экране без лишних проводов и приставок.</p>
+        <div class="grid gap-4 max-w-lg mx-auto text-left">
+            <div class="bg-zinc-900/60 p-6 rounded-2xl border border-zinc-800 flex items-center gap-6">
+                <span class="text-2xl font-black text-red-600">1</span>
+                <p class="font-bold text-sm">Откройте встроенный браузер на Smart TV</p>
+            </div>
+            <div class="bg-zinc-900/60 p-6 rounded-2xl border border-zinc-800 flex items-center gap-6">
+                <span class="text-2xl font-black text-red-600">2</span>
+                <p class="font-bold text-sm">Введите адрес сайта и наслаждайтесь 4K качеством</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Search Mobile Overlay -->
+    <div id="search-overlay" class="fixed inset-0 bg-black z-[6000] hidden p-6">
+        <div class="flex items-center gap-4 mb-10">
+            <button onclick="closeSearch()" class="text-xl p-2"><i class="fas fa-chevron-left"></i></button>
+            <input id="search-mobile" onkeyup="if(event.key==='Enter')performSearch(this.value)" type="text" placeholder="Поиск по названию..." class="bg-zinc-900 flex-1 py-4 px-6 rounded-2xl focus:outline-none border border-zinc-800 text-white">
+        </div>
+        <div id="search-results" class="movie-grid overflow-y-auto h-[calc(100%-120px)] hide-scrollbar pb-10"></div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="modal-details" class="fixed inset-0 z-[7000] hidden items-center justify-center p-4 bg-black/90 backdrop-blur-2xl" onclick="closeDetails()">
+        <div class="max-w-5xl w-full bg-zinc-950 rounded-[32px] overflow-hidden flex flex-col md:flex-row border border-white/5 relative" onclick="event.stopPropagation()">
+            <button onclick="closeDetails()" class="absolute top-6 right-6 z-20 text-white/50 hover:text-white text-2xl transition"><i class="fas fa-times"></i></button>
+            
+            <div class="w-full md:w-[380px] h-64 md:h-auto relative">
+                <img id="det-img" src="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent md:hidden"></div>
+            </div>
+            
+            <div class="p-8 md:p-12 flex-1 flex flex-col justify-center">
+                <h2 id="det-name" class="text-3xl md:text-5xl font-black italic uppercase leading-none mb-4">...</h2>
+                <div id="det-info" class="flex gap-4 text-red-600 font-bold text-[10px] uppercase tracking-widest mb-6"></div>
+                <p id="det-desc" class="text-zinc-400 text-base leading-relaxed italic mb-8 opacity-90 line-clamp-2 md:line-clamp-none"></p>
+                <button id="det-play" class="bg-red-600 hover:bg-red-700 py-5 rounded-2xl font-black text-lg uppercase tracking-tight transition transform active:scale-95 shadow-lg shadow-red-600/20">Начать просмотр</button>
             </div>
         </div>
     </div>
 
-    <!-- Плеер на весь экран -->
-    <div id="player-overlay">
-        <div class="absolute top-0 left-0 w-full p-6 z-[10001] flex justify-between items-center pointer-events-none">
-            <button onclick="closePlayer()" class="bg-zinc-900/80 hover:bg-red-600 w-12 h-12 rounded-full text-white pointer-events-auto transition shadow-xl">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="bg-black/80 px-6 py-2 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-white pointer-events-auto">
-                Сейчас играет: <span id="playing-now-title" class="text-red-600 ml-2">...</span>
+    <!-- Full Player Wrapper -->
+    <div id="player-wrapper">
+        <!-- Player Controls Header -->
+        <div class="absolute top-0 left-0 w-full z-[10001] p-5 flex flex-col md:flex-row justify-between items-center gap-4 pointer-events-none">
+            <div class="flex items-center gap-4 pointer-events-auto">
+                <button onclick="closePlayer()" class="w-12 h-12 bg-white/10 hover:bg-red-600 rounded-full backdrop-blur-xl transition flex items-center justify-center border border-white/10">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="flex gap-1 bg-black/60 p-1.5 rounded-2xl border border-white/5 backdrop-blur-2xl">
+                    <button onclick="setSource('kinobox')" id="s-kinobox" class="source-btn active">Основной</button>
+                    <button onclick="setSource('kinobd')" id="s-kinobd" class="source-btn">Резервный</button>
+                </div>
             </div>
-            <div class="w-12"></div>
+            <div id="player-meta-box" class="bg-black/80 px-6 py-2.5 rounded-full border border-white/5 text-[9px] font-black uppercase tracking-[3px] pointer-events-auto shadow-2xl">
+                OINK PLAYER: <span id="cur-p-title" class="text-red-600">...</span>
+            </div>
         </div>
-        <div id="player-mount" class="w-full h-full"></div>
-    </div>
-
-    <!-- Куки Баннер -->
-    <div id="cookie-banner" class="fixed bottom-6 left-6 right-6 md:left-auto md:w-96 bg-white text-black p-6 rounded-2xl z-[10002] hidden shadow-2xl">
-        <p class="text-xs font-bold mb-4 uppercase leading-tight">Мы используем куки для подбора фильмов под ваш вкус. Продолжая, вы соглашаетесь с условиями OINK.</p>
-        <button onclick="acceptCookies()" class="w-full bg-black text-white py-3 font-black text-xs uppercase rounded-lg">Принять</button>
+        <div id="player-container" class="w-full h-full"></div>
     </div>
 
     <script>
-        const API_KEY = '960dc4e3-9eae-4072-8f0c-98a5ed6c0d2a';
-        const BASE_URL = 'https://kinopoiskapiunofficial.tech/api';
-        let currentMovieId = null;
-
-        window.onload = () => {
-            detectGeo();
-            checkCookies();
-            setSeasonal();
-            loadRail('TOP_100_POPULAR_FILMS', 'rail-trending');
-            loadRail('TOP_250_BEST_FILMS', 'rail-popular');
-            loadPersonal();
+        const K_TOKEN = '960dc4e3-9eae-4072-8f0c-98a5ed6c0d2a';
+        const API = 'https://kinopoiskapiunofficial.tech/api';
+        
+        let state = {
+            id: null,
+            title: '',
+            source: localStorage.getItem('oink_src') || 'kinobox',
+            interests: JSON.parse(localStorage.getItem('oink_fav') || '[]'),
+            view: 'home'
         };
 
-        // 1. Гео-локация
-        async function detectGeo() {
-            const geoEl = document.getElementById('current-region');
-            try {
-                const res = await fetch('https://ipapi.co/json/');
-                const data = await res.json();
-                geoEl.innerText = data.region || data.country_name || 'RUSSIA';
-            } catch (e) {
-                geoEl.innerText = 'RUSSIA';
-            }
-        }
+        // On Load
+        window.onload = () => {
+            fetchGeo();
+            updateSeason();
+            loadHome();
+            loadRecs();
+        };
 
-        // 2. Куки и интересы
-        function checkCookies() {
-            if (!localStorage.getItem('oink_consent')) {
-                document.getElementById('cookie-banner').classList.remove('hidden');
-            }
-        }
-
-        function acceptCookies() {
-            localStorage.setItem('oink_consent', 'true');
-            document.getElementById('cookie-banner').classList.add('hidden');
-        }
-
-        function trackWatch(name) {
-            let tags = JSON.parse(localStorage.getItem('oink_tags') || '[]');
-            tags.unshift(name.split(' ')[0]);
-            tags = [...new Set(tags)].slice(0, 5);
-            localStorage.setItem('oink_tags', JSON.stringify(tags));
-            loadPersonal();
-        }
-
-        // 3. Сезонная логика
-        function setSeasonal() {
-            const m = new Date().getMonth();
-            const label = document.getElementById('seasonal-label');
-            const title = document.getElementById('seasonal-title');
+        // Navigation Engine
+        function navigate(view) {
+            state.view = view;
+            ['home', 'docs', 'faq'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
+            document.getElementById(`view-${view}`).classList.remove('hidden');
             
-            if (m >= 2 && m <= 4) {
-                label.innerText = 'ПОДБОРКА ВЕСНЫ';
-                title.innerText = 'ВЕСЕННИЕ ХИТЫ';
-            } else if (m >= 5 && m <= 7) {
-                label.innerText = 'ЛЕТНИЙ БЛОКБАСТЕР';
-                title.innerText = 'ГОРЯЧЕЕ ЛЕТО';
-            } else if (m >= 8 && m <= 10) {
-                label.innerText = 'ОСЕННИЙ УЮТ';
-                title.innerText = 'ЗОЛОТАЯ ОСЕНЬ';
-            } else {
-                label.innerText = 'ЗИМНЯЯ МАГИЯ';
-                title.innerText = 'ЗИМНЯЯ КОЛЛЕКЦИЯ';
-            }
+            // Update Menu Active State
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            const mNav = document.getElementById(`m-nav-${view}`);
+            if(mNav) mNav.classList.add('active');
+            
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        // 4. API & Рендер
-        async function loadRail(type, containerId) {
+        function openSearch() { document.getElementById('search-overlay').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+        function closeSearch() { document.getElementById('search-overlay').classList.add('hidden'); document.body.style.overflow = 'auto'; }
+
+        // Data Loading
+        async function loadHome() {
             try {
-                const res = await fetch(`${BASE_URL}/v2.2/films/top?type=${type}&page=1`, {
-                    headers: { 'X-API-KEY': API_KEY }
-                });
+                const res = await fetch(`${API}/v2.2/films/top?type=TOP_100_POPULAR_FILMS&page=1`, { headers: {'X-API-KEY': K_TOKEN} });
                 const data = await res.json();
-                renderItems(data.films, containerId);
-            } catch (e) {}
+                renderGrid(data.films, 'rail-trending');
+                
+                // Pick a random hero from top movies
+                const heroIdx = Math.floor(Math.random() * 6);
+                updateHero(data.films[heroIdx]);
+            } catch(e) { console.error("OINK Error:", e); }
         }
 
-        async function loadPersonal() {
-            const tags = JSON.parse(localStorage.getItem('oink_tags') || []);
-            if (tags.length === 0) return;
-
-            document.getElementById('row-personal').classList.remove('hidden');
-            try {
-                const res = await fetch(`${BASE_URL}/v2.1/films/search-by-keyword?keyword=${encodeURIComponent(tags[0])}&page=1`, {
-                    headers: { 'X-API-KEY': API_KEY }
-                });
-                const data = await res.json();
-                renderItems(data.films, 'rail-personal');
-            } catch (e) {}
+        function updateHero(f) {
+            const id = f.kinopoiskId || f.filmId;
+            document.getElementById('hero-bg').style.backgroundImage = `url('${f.posterUrl}')`;
+            document.getElementById('hero-title').innerText = f.nameRu || f.nameEn;
+            document.getElementById('hero-meta').innerText = `${f.year} • ${f.rating || 'HD'} • ${f.genres?.[0]?.genre.toUpperCase()}`;
+            document.getElementById('hero-play').onclick = () => playMovie(id, f.nameRu || f.nameEn);
+            document.getElementById('hero-info').onclick = () => showDetails(id);
+            
+            // Reset Animation
+            document.getElementById('hero-bg').style.transform = 'scale(1.1)';
+            setTimeout(() => document.getElementById('hero-bg').style.transform = 'scale(1)', 100);
         }
 
-        function renderItems(films, targetId) {
-            const target = document.getElementById(targetId);
-            target.innerHTML = '';
+        function renderGrid(films, targetId) {
+            const container = document.getElementById(targetId);
+            container.innerHTML = '';
             films.forEach(f => {
                 const id = f.kinopoiskId || f.filmId;
                 const card = document.createElement('div');
                 card.className = 'movie-card';
                 card.innerHTML = `
-                    <div class="relative group overflow-hidden rounded-xl">
-                        <img src="${f.posterUrlPreview}" loading="lazy">
-                        <div class="absolute inset-0 bg-red-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <i class="fas fa-play text-3xl"></i>
+                    <div class="relative group">
+                        <img src="${f.posterUrlPreview}" loading="lazy" class="group-hover:brightness-50 transition-all duration-300">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-50 group-hover:scale-100">
+                            <i class="fas fa-play-circle text-4xl text-white"></i>
                         </div>
+                        <div class="absolute top-2 right-2 bg-red-600/90 backdrop-blur px-1.5 py-0.5 rounded text-[8px] font-black">${f.rating || 'HD'}</div>
                     </div>
-                    <div class="mt-3">
-                        <div class="text-sm font-black truncate uppercase tracking-tighter">${f.nameRu || f.nameEn}</div>
-                        <div class="text-[10px] text-zinc-500 font-bold uppercase">${f.year} • ${f.rating || '—'}</div>
+                    <div class="mt-3 px-1">
+                        <div class="text-[11px] font-black uppercase truncate tracking-tight text-white/90">${f.nameRu || f.nameEn}</div>
+                        <div class="text-[8px] text-zinc-500 font-bold mt-0.5 uppercase">${f.year} • ${f.genres?.[0]?.genre || 'КИНО'}</div>
                     </div>
                 `;
-                
-                card.onclick = () => openPlayer(id, f.nameRu || f.nameEn);
-                card.ondblclick = (e) => { e.stopPropagation(); openDetails(id); };
-                target.appendChild(card);
+                card.onclick = () => playMovie(id, f.nameRu || f.nameEn);
+                card.ondblclick = (e) => { e.stopPropagation(); showDetails(id); };
+                container.appendChild(card);
             });
         }
 
-        // 5. Плеер и источники
-        function openPlayer(id, title) {
-            const overlay = document.getElementById('player-overlay');
-            const mount = document.getElementById('player-mount');
-            document.getElementById('playing-now-title').innerText = title;
-            
-            overlay.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            trackWatch(title);
-
-            mount.innerHTML = '';
-            if (window.kbox) {
-                try {
-                    window.kbox(mount, {
-                        search: { kinopoisk: id },
-                        players: ['alloha', 'kodik', 'videocdn', 'ashdi'],
-                        menu: { default: 'menu' }
-                    });
-                } catch (e) { fallbackPlayer(mount, id); }
-            } else {
-                fallbackPlayer(mount, id);
-            }
-        }
-
-        function fallbackPlayer(el, id) {
-            el.innerHTML = `<iframe src="https://kinobd.net/id/${id}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`;
-        }
-
-        function closePlayer() {
-            document.getElementById('player-overlay').style.display = 'none';
-            document.getElementById('player-mount').innerHTML = '';
-            document.body.style.overflow = 'auto';
-        }
-
-        // 6. Детали (API v2.2)
-        async function openDetails(id) {
+        // Details Modal Logic
+        async function showDetails(id) {
             try {
-                const res = await fetch(`${BASE_URL}/v2.2/films/${id}`, {
-                    headers: { 'X-API-KEY': API_KEY }
-                });
+                const res = await fetch(`${API}/v2.2/films/${id}`, { headers: {'X-API-KEY': K_TOKEN} });
                 const f = await res.json();
-                currentMovieId = id;
-
-                document.getElementById('det-poster').src = f.posterUrl;
-                document.getElementById('det-title').innerText = f.nameRu;
-                document.getElementById('det-desc').innerText = f.description || "Описание скоро будет добавлено.";
-                document.getElementById('det-rating').innerText = f.ratingKinopoisk || '—';
-                document.getElementById('det-time').innerText = f.filmLength ? f.filmLength + ' мин' : '—';
                 
-                const meta = document.getElementById('det-meta');
-                meta.innerText = `${f.year} • ${f.genres[0].genre.toUpperCase()} • ${f.countries[0].country.toUpperCase()}`;
-
-                document.getElementById('det-play-btn').onclick = () => {
-                    closeDetails();
-                    openPlayer(id, f.nameRu);
-                };
-
-                document.getElementById('details-modal').classList.replace('hidden', 'flex');
+                document.getElementById('det-img').src = f.posterUrl;
+                document.getElementById('det-name').innerText = f.nameRu || f.nameEn;
+                document.getElementById('det-desc').innerText = f.description || "Сюжетная линия держится в секрете, но обещает быть захватывающей.";
+                document.getElementById('det-info').innerHTML = `<span>${f.year}</span> <span>•</span> <span>${f.ratingKinopoisk || 'NEW'} KP</span> <span>•</span> <span>${f.genres[0].genre}</span>`;
+                document.getElementById('det-play').onclick = () => { closeDetails(); playMovie(id, f.nameRu || f.nameEn); };
+                
+                saveInterest(f.genres[0].genre);
+                document.getElementById('modal-details').classList.remove('hidden');
+                document.getElementById('modal-details').classList.add('flex');
                 document.body.style.overflow = 'hidden';
-            } catch (e) {}
+                updateSEO(f.nameRu || f.nameEn, f.description);
+            } catch(e) {}
         }
 
         function closeDetails() {
-            document.getElementById('details-modal').classList.replace('flex', 'hidden');
+            document.getElementById('modal-details').classList.add('hidden');
+            document.getElementById('modal-details').classList.remove('flex');
             document.body.style.overflow = 'auto';
+            updateSEO();
         }
 
-        // 7. Навигация
-        function showPage(id) {
-            ['home', 'docs', 'faq'].forEach(p => document.getElementById(`page-${p}`).classList.add('hidden'));
-            document.getElementById(`page-${id}`).classList.remove('hidden');
-            window.scrollTo(0,0);
+        // Player Core
+        function setSource(src) {
+            state.source = src;
+            localStorage.setItem('oink_src', src);
+            document.getElementById('s-kinobox').classList.toggle('active', src === 'kinobox');
+            document.getElementById('s-kinobd').classList.toggle('active', src === 'kinobd');
+            if(state.id) initPlayer();
         }
 
-        async function handleSearch() {
-            const q = document.getElementById('search-input').value;
-            if (!q) return;
-            showPage('home');
+        function playMovie(id, title) {
+            state.id = id;
+            state.title = title;
+            document.getElementById('cur-p-title').innerText = title;
+            document.getElementById('player-wrapper').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            setSource(state.source);
+            updateSEO(title);
+        }
+
+        function initPlayer() {
+            const container = document.getElementById('player-container');
+            container.innerHTML = ''; 
+            
+            if(state.source === 'kinobox') {
+                if(window.kbox) window.kbox(container, {
+                    search: { kinopoisk: state.id },
+                    players: ['alloha', 'kodik', 'collaps', 'videocdn'],
+                    menu: { default: 'menu' }
+                }); else {
+                    // Fallback если скрипт еще не загружен
+                    new Kinobox(container, {
+                        search: { kinopoisk: state.id },
+                        players: ['alloha', 'kodik', 'collaps']
+                    }).init();
+                }
+            } else {
+                container.innerHTML = `<div id="kinobd-root" data-kinopoisk="${state.id}" style="width:100%;height:100%;"></div>`;
+                const s = document.createElement('script');
+                s.src = "https://kinobd.net/js/player_.js";
+                document.body.appendChild(s);
+            }
+        }
+
+        function closePlayer() {
+            document.getElementById('player-wrapper').style.display = 'none';
+            document.getElementById('player-container').innerHTML = '';
+            document.body.style.overflow = 'auto';
+            updateSEO();
+        }
+
+        // Search Engine
+        async function performSearch(q) {
+            if(!q || q.length < 2) return;
             try {
-                const res = await fetch(`${BASE_URL}/v2.1/films/search-by-keyword?keyword=${encodeURIComponent(q)}&page=1`, {
-                    headers: { 'X-API-KEY': API_KEY }
-                });
+                const res = await fetch(`${API}/v2.1/films/search-by-keyword?keyword=${encodeURIComponent(q)}`, { headers: {'X-API-KEY': K_TOKEN} });
                 const data = await res.json();
-                renderItems(data.films, 'rail-trending');
-                document.getElementById('rail-trending').previousElementSibling.innerHTML = `<span class="w-1 h-6 bg-red-600"></span> РЕЗУЛЬТАТЫ ПОИСКА: ${q.toUpperCase()}`;
-            } catch (e) {}
+                
+                const results = data.films.map(f => ({...f, kinopoiskId: f.filmId, nameRu: f.nameRu || f.nameEn}));
+                
+                if(window.innerWidth < 768) {
+                    renderGrid(results, 'search-results');
+                } else {
+                    navigate('home');
+                    renderGrid(results, 'rail-trending');
+                    document.getElementById('grid-title').innerHTML = `<span class="w-1.5 h-6 bg-red-600 rounded-full"></span> Найдено по запросу: ${q.toUpperCase()}`;
+                    closeSearch();
+                }
+            } catch(e) {}
         }
 
-        function playRandom() {
-            const cards = document.querySelectorAll('.movie-card');
-            if (cards.length > 0) cards[0].click();
+        // Personalization
+        function saveInterest(g) {
+            state.interests.unshift(g);
+            state.interests = [...new Set(state.interests)].slice(0, 3);
+            localStorage.setItem('oink_fav', JSON.stringify(state.interests));
+            loadRecs();
+        }
+
+        async function loadRecs() {
+            if(state.interests.length === 0) return;
+            try {
+                const res = await fetch(`${API}/v2.1/films/search-by-keyword?keyword=${encodeURIComponent(state.interests[0])}`, { headers: {'X-API-KEY': K_TOKEN} });
+                const data = await res.json();
+                if(!data.films.length) return;
+                
+                document.getElementById('row-recs').classList.remove('hidden');
+                const rail = document.getElementById('rail-recs');
+                rail.innerHTML = '';
+                data.films.slice(0, 10).forEach(f => {
+                    const card = document.createElement('div');
+                    card.className = 'w-32 md:w-48 flex-shrink-0 movie-card';
+                    card.innerHTML = `<img src="${f.posterUrlPreview}" class="rounded-xl shadow-lg border border-white/5"><div class="text-[10px] font-black uppercase mt-2 truncate text-zinc-300 px-1">${f.nameRu || f.nameEn}</div>`;
+                    card.onclick = () => playMovie(f.filmId, f.nameRu || f.nameEn);
+                    rail.appendChild(card);
+                });
+            } catch(e) {}
+        }
+
+        // Metadata Helpers
+        function fetchGeo() {
+            fetch('https://ipapi.co/json/').then(r => r.json()).then(d => {
+                document.getElementById('user-geo').innerText = d.country_name || 'РОССИЯ';
+            }).catch(() => {});
+        }
+
+        function updateSeason() {
+            const m = new Date().getMonth();
+            const b = document.getElementById('hero-badge');
+            if(m >= 2 && m <= 4) b.innerText = "ВЕСЕННИЕ ПРЕМЬЕРЫ OINK";
+            else if(m >= 5 && m <= 7) b.innerText = "ЛЕТНИЙ КИНОСЕЗОН";
+            else if(m >= 8 && m <= 10) b.innerText = "ОСЕННИЙ МАРАФОН КИНО";
+            else b.innerText = "ЗИМНИЙ КИНОЗАЛ OINK";
+        }
+
+        function updateSEO(t, d) {
+            document.title = t ? `${t} — Смотреть на OINK` : "OINK — Кино и сериалы в HD качестве";
+            if(d) document.querySelector('meta[name="description"]').setAttribute("content", d.slice(0, 160));
         }
     </script>
 </body>
