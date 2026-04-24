@@ -1333,8 +1333,6 @@ const data = await response.json();</code></pre>
                 <div class="flex gap-1 bg-black/60 p-1.5 rounded-2xl border border-white/5 backdrop-blur-2xl">
                     <button onclick="setSource('kinobox')" id="s-kinobox" class="source-btn active text-white">Основной</button>
                     <button onclick="setSource('kinobd')" id="s-kinobd" class="source-btn text-white">Резервный</button>
-                    <button onclick="setSource('cdnvideohub')" id="s-cdnvideohub" class="source-btn text-white">Запасной</button>
-                    <button onclick="setSource('livetatnet')" id="s-livetatnet" class="source-btn text-white">Смотреть Онлайн (TV)</button>
                 </div>
             </div>
              <div id="player-meta-box" class="bg-black/80 px-6 py-2.5 rounded-full border border-white/5 text-[9px] font-black uppercase tracking-[3px] pointer-events-auto shadow-2xl text-white">
@@ -1526,7 +1524,6 @@ const data = await response.json();</code></pre>
             if(state.id) initPlayer();
         }
 
-
         function playMovie(id, title) {
             state.id = id;
             state.title = title;
@@ -1564,44 +1561,6 @@ const data = await response.json();</code></pre>
                 s.src = "https://kinobd.net/js/player_.js";
                 s.async = true;
                 document.body.appendChild(s);
-                }
-                 } else {
-                // ——— Запасной: CDNVideoHub ———
-                container.innerHTML = `<div id="cdnvideohub-container" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>`;
-                const cdnContainer = document.getElementById('cdnvideohub-container');
-
-                // Создаём кастомный элемент video-player
-                const videoPlayer = document.createElement('video-player');
-                videoPlayer.setAttribute('data-publisher-id', '1617');
-                videoPlayer.setAttribute('data-title-id', state.id);
-                videoPlayer.setAttribute('data-aggregator', 'kp');
-                videoPlayer.style.cssText = 'width:100%;height:100%;display:block;';
-                cdnContainer.appendChild(videoPlayer);
-
-                // Загружаем скрипт CDNVideoHub если ещё не загружен
-                const cdnScriptSrc = 'https://player.cdnvideohub.com/s2/stable/video-player.umd.js';
-                if (!document.querySelector(`script[src="${cdnScriptSrc}"]`)) {
-                    const cdnScript = document.createElement('script');
-                    cdnScript.src = cdnScriptSrc;
-                    cdnScript.async = true;
-                    cdnScript.onerror = () => {
-                        cdnContainer.innerHTML = '<div style="color:#fff;text-align:center;padding:2rem;font-family:sans-serif;">⚠️ Ошибка загрузки плеера CDNVideoHub.<br>Попробуйте другой источник.</div>';
-                    };
-                    document.body.appendChild(cdnScript);
-                }
-            } else  {
-                // ——— Смотреть Онлайн: live.tatnet.app ———
-                container.innerHTML = `
-                    <div id="live-iframe-container" style="width:100%;height:100%;">
-                        <iframe
-                            src="https://live.tatnet.app/live/player.html"
-                            style="width:100%;height:100%;border:none;"
-                            allowfullscreen
-                            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
-                        ></iframe>
-                    </div>
-                `;
             }
         }
 
